@@ -1,14 +1,16 @@
 import sys
 import time
-
 sys.path.append("C:/Users/Ary/dev/PyBlockChain")
+
+from Blockchain.Backend.Core.tx import CoinBaseTx
+
 
 from Blockchain.Backend.Core.block import Block
 from Blockchain.Backend.Core.blockheader import BlockHeader
 from Blockchain.Backend.Util.util import hash256
 from Blockchain.Backend.Core.Database.database import BlockchainDB
 
-ZERO_HASH = '0' * 64
+ZERO_HASH = b'\0' * 32
 VERSION = 1
 
 class Blockchain:
@@ -30,12 +32,16 @@ class Blockchain:
 
     def addBlock(self,BlockHeight, previousBlockHash): 
         timestamp = int(time.time())
-        Transaction = f"Codies Alert sent {BlockHeight} bitcoins to Joe"
-        merkleRoot = hash256(Transaction.encode()).hex()  #combined hash of all the transactions
+        #Transaction = f"Codies Alert sent {BlockHeight} bitcoins to Joe"
+        cbInstance = CoinBaseTx(BlockHeight)
+        '''Tx = transaction'''
+
+        Tx = cbInstance.CoinbaseTransaction()
+        merkleRoot = ''  #combined hash of all the transactions
         bits = 'ffff001f'
         blockHeader = BlockHeader(VERSION,previousBlockHash,merkleRoot,timestamp,bits)
         blockHeader.mine()
-        self.write_on_disk([Block(BlockHeight, 1, blockHeader.__dict__, 1 , Transaction).__dict__])
+        self.write_on_disk([Block(BlockHeight, 1, blockHeader.__dict__, 1 , Tx).__dict__])
 
     def main(self):
         while True:
