@@ -13,4 +13,6 @@ pycryptodome==3.11.0
 qrcode==7.3.1
 requests==2.26.0
 urllib3==1.26.7
-Werkzeug==2.0.2
+Werkzeug==2.0.
+
+thinking
