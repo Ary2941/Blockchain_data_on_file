@@ -28,6 +28,7 @@ class BaseDB:
             data = item
 
         with open(self.filepath, "w+") as file:
+            #print(f"DATA: {data}")
             file.write(json.dumps(data))
 
 

@@ -29,14 +29,13 @@ def decode_base58(s):
     num = 0
 
     for c in s:
+        print(f"c: {c} {c in BASE58_ALPHABET}")
         num *= 58
         num += BASE58_ALPHABET.index(c)
 
     combined = num.to_bytes(25, byteorder="big")
     checksum = combined[-4:]
-    checksumb = hash256(combined[:-4])
-    print(f"mira esto!{hash256(combined[:-4])[:4]} {combined[:-4][:4]}")
     if hash256(combined[:-4])[:4] != checksum:
-        raise ValueError(f"bad Address {checksum} {hash256(combined[:-4][:4])}")
+        raise ValueError(f"bad Address {checksum} {hash256(combined[:-4])[:4]}")
 
     return combined[1:-4]

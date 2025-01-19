@@ -41,7 +41,7 @@ class Blockchain:
         bits = 'ffff001f'
         blockHeader = BlockHeader(VERSION,previousBlockHash,merkleRoot,timestamp,bits)
         blockHeader.mine()
-        self.write_on_disk([Block(BlockHeight, 1, blockHeader.__dict__, 1 , Tx).__dict__])
+        self.write_on_disk([Block(BlockHeight, 1, blockHeader.__dict__, 1 , Tx.to_dict()).__dict__])
 
     def main(self):
         while True:
