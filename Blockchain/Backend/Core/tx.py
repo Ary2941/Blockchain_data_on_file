@@ -1,6 +1,6 @@
 
 from Blockchain.Backend.Core.script import Script
-from Blockchain.Backend.Util.util import bytes_needed, decode_base58, int_to_little_endian, little_endian_to_int
+from Blockchain.Backend.Util.util import bytes_needed, decode_base58, encode_variant, hash256, int_to_little_endian, little_endian_to_int
 
 class Tx:
     def __init__(self,version, tx_ins, tx_outs, locktime):
@@ -11,7 +11,32 @@ class Tx:
         self.tx_outs  = tx_outs
         '''locktime of the transaction'''
         self.locktime = locktime
-    
+
+    def serialize(self):
+        result = int_to_little_endian(self.version,4)
+        result += encode_variant(len(self.tx_ins))
+        
+        for transaction in self.tx_ins:
+            result += transaction.serialize() #convert all the transaction input and add concatenated value
+
+        result += encode_variant(len(self.tx_outs))
+
+        for transaction in self.tx_outs:
+            result += transaction.serialize() #convert all the transaction output and add concatenated value
+
+        result += int_to_little_endian(self.locktime, 4)
+
+        return result
+
+    def id(self):
+        '''Human-readable TxId'''
+        return self.hash().hex()
+
+    def hash(self):
+        '''Binary Hash of serialization '''
+        return hash256(self.serialize())[::-1]
+
+
     def is_coinbase(self):
         # all coinbase transactions have exactly one input, that first input has prev_tx is b'\x00'*32 and the first input prev_index is 0xffffffff
         if len(self.tx_ins) != 1:
@@ -53,13 +78,26 @@ class TxIn:
             self.script_sig = Script()
         else:
             self.script_sig = script_sig
+        self.sequence = sequence 
 
-        self.sequence = sequence
+    def serialize (self):
+        result = self.prev_tx[::-1]
+        result += int_to_little_endian(self.prev_index, 4)
+        result += self.script_sig.serialize()
+        result += int_to_little_endian(self.sequence, 4)
+        return result
+
 
 class TxOut:
     def __init__(self,amount,script_pubkey):
         self.amount = amount
         self.script_pubkey = script_pubkey
+
+    def serialize(self):
+        result = int_to_little_endian(self.amount, 8)
+        result += self.script_pubkey.serialize()
+        return result
+
 
 '''transaction created by a miner
 creating a new block
@@ -89,7 +127,12 @@ class CoinBaseTx:
         target_script = Script.p2pkh_script(target_h160)
         tx_outs.append(TxOut(amount=target_amount,script_pubkey=target_script))
 
-        return Tx(1,tx_ins,tx_outs,0)
+        coinBaseTx =  Tx(1,tx_ins,tx_outs,0)
+        coinBaseTx.TxId = coinBaseTx.id()
+
+        return coinBaseTx
+
+
 '''
 TxId = 123
 bob -> 0 send 1 btc to codeallok

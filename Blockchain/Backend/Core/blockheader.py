@@ -3,7 +3,7 @@ from Blockchain.Backend.Util.util import hash256
 class BlockHeader:
     def __init__(self, version, previousBlockHash, merkleRoot, timestamp, bits):
         self.version = version
-        self.previousBlockHash = previousBlockHash.hex() #it fixed
+        self.previousBlockHash = previousBlockHash#it fixed
         self.merkleRoot = merkleRoot
         self.timestamp = timestamp
         self.bits = bits

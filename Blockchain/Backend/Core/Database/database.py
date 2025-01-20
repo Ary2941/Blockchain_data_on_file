@@ -9,13 +9,13 @@ class BaseDB:
     def read(self):
         if not os.path.exists(self.filepath):
             print(f"file {{self.filepath}} not available")
-        return False
+            return False
 
         with open (self.filepath,'r') as file:
             raw = file.readline()
         
         if len (raw) > 0:
-            data = json.loas(raw)
+            data = json.loads(raw)
         else: 
             data = []  
         return data
@@ -41,3 +41,8 @@ class BlockchainDB(BaseDB):
         data = self.read()
         if data:
             return data[-1]
+        
+class AccountDB(BaseDB):
+    def __init__(self):
+        self.filename = "account"
+        super().__init__()
