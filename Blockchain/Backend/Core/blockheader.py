@@ -3,7 +3,7 @@ from Blockchain.Backend.Util.util import hash256
 class BlockHeader:
     def __init__(self, version, previousBlockHash, merkleRoot, timestamp, bits):
         self.version = version
-        self.previousBlockHash = previousBlockHash#it fixed
+        self.previousBlockHash = previousBlockHash#TODO: FIX
         self.merkleRoot = merkleRoot
         self.timestamp = timestamp
         self.bits = bits
@@ -23,4 +23,4 @@ class BlockHeader:
                 ).encode()).hex()
             self.nonce += 1
             print(f" Mining Started {self.nonce} {self.BlockHash[0:4]}", end = '\r')
-        print(self.previousBlockHash)
+        print(f"este é {self.BlockHash}")

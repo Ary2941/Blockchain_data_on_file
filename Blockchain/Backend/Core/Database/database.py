@@ -8,7 +8,7 @@ class BaseDB:
 
     def read(self):
         if not os.path.exists(self.filepath):
-            print(f"file {{self.filepath}} not available")
+            print(f"file {self.filepath} not available")
             return False
 
         with open (self.filepath,'r') as file:

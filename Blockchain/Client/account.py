@@ -9,7 +9,6 @@ sys.path.append('/Users/Ary/dev/PyBlockChain')
 from Blockchain.Backend.Core.Database.database import AccountDB
 from Blockchain.Backend.Core.EllepticCurve.EllepticCurve import Sha256Point
 from Blockchain.Backend.Util.util import hash160, hash256
-#from Blockchain.Backend.Core.Database.database import AccountDB
 import secrets
 
 

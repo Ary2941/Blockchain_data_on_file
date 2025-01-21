@@ -19,6 +19,7 @@ class Blockchain:
 
     def write_on_disk(self,block):
         blockchaindb = BlockchainDB()
+        print(f"block{block}")
         blockchaindb.write(block)
     
     def fetch_last_block(self):

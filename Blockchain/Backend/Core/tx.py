@@ -28,6 +28,36 @@ class Tx:
 
         return result
 
+    def sig_hash(self,input_index, script_pubkey):
+        ''' convert all field in byteform'''
+        string = int_to_little_endian(self.version,4)
+        
+        string += encode_variant(len(self.tx_ins))
+
+        for i, tx_in in enumerate(self.tx_ins):
+            if i == input_index:
+                string += TxIn(tx_in.prev_tx,tx_in.prev_index,script_pubkey).serialize()
+            else: 
+                string += TxIn(tx_in.prev_tx,tx_in.prev_index).serialize()    
+
+        string += encode_variant(len(self.tx_outs))
+        for tx_out in self.tx_outs:
+            string += tx_out.serialize()
+
+        string += int_to_little_endian(self.locktime, 4)
+        string += int_to_little_endian(SIGHASH_ALL, 4)
+        h256 = hash256(string)
+        return int.to_bytes(h256, 'big')
+         
+
+
+    def sign_input(self, input_index, private_key, script_pubkey):
+        signatureHash = self.sig_hash(input_index=input_index,script_pubkey=script_pubkey)
+        der = private_key.sign(signatureHash)
+        sig = der + SIGHASH_ALL.to_bytes(1,'big')
+        sec = private_key.point.sec()
+        self.tx_ins[input_index].script_sig = Script([sig,sec]) 
+
     def id(self):
         '''Human-readable TxId'''
         return self.hash().hex()
@@ -107,6 +137,7 @@ REWARD = 50
 
 PRIVATE_KEY = '76106471728427465796187510860355568160254207807680397589831754374945066693457'
 MINER_ADDRESS = '1LYgXwYXw16GJXgDwHV7aCNijnQWYEdc1C'
+SIGHASH_ALL = 1
 
 class CoinBaseTx:
     def __init__(self,BlockHeight):
