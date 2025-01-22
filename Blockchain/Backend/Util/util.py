@@ -29,7 +29,7 @@ def decode_base58(s):
     num = 0
 
     for c in s:
-        print(f"c: {c} {c in BASE58_ALPHABET}")
+        #print(f"c: {c} {c in BASE58_ALPHABET}")
         num *= 58
         num += BASE58_ALPHABET.index(c)
 

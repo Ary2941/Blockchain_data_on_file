@@ -1,25 +1,33 @@
-import sys
-import time
+import sys, time
+from multiprocessing import Process, Manager #our frontend will be in a second process
+
 sys.path.append("C:/Users/Ary/dev/PyBlockChain")
 
 from Blockchain.Backend.Core.tx import CoinBaseTx
-
 
 from Blockchain.Backend.Core.block import Block
 from Blockchain.Backend.Core.blockheader import BlockHeader
 from Blockchain.Backend.Util.util import hash256
 from Blockchain.Backend.Core.Database.database import BlockchainDB
 
+from Blockchain.Frontend.run import main
+
+
+
 ZERO_HASH = b'\0' * 32
 VERSION = 1
 
 class Blockchain:
-    def __init__(self):
-        pass
+    def __init__(self,utxos):
+        self.utxos = utxos
+
+    ''' quick retrieval in memorty'''
+    def store_utxos_in_cache(self, transaction):
+        self.utxos[transaction.TxId] = transaction
 
     def write_on_disk(self,block):
         blockchaindb = BlockchainDB()
-        print(f"block{block}")
+        #print(f"block{block}")
         blockchaindb.write(block)
     
     def fetch_last_block(self):
@@ -42,6 +50,9 @@ class Blockchain:
         bits = 'ffff001f'
         blockHeader = BlockHeader(VERSION,previousBlockHash,merkleRoot,timestamp,bits)
         blockHeader.mine()
+        #
+        self.store_utxos_in_cache(Tx)
+        #
         print(f"Block {BlockHeight} mined succesfully with Nonce value of {blockHeader.nonce}")
 
         self.write_on_disk([Block(BlockHeight, 1, blockHeader.__dict__, 1 , Tx.to_dict()).__dict__])
@@ -60,5 +71,12 @@ class Blockchain:
             self.addBlock(BlockHeight,previousBlockHash)
 
 if __name__ == '__main__':
-    blockchain = Blockchain()
-    blockchain.main()
+    with Manager() as manager:
+        utxos = manager.dict()
+
+        webapp = Process(target=main, args=(utxos,))
+
+        webapp.start()
+
+        blockchain = Blockchain(utxos)
+        blockchain.main()

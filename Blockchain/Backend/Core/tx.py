@@ -4,6 +4,8 @@ from Blockchain.Backend.Util.util import bytes_needed, decode_base58, encode_var
 
 class Tx:
     def __init__(self,version, tx_ins, tx_outs, locktime):
+        self.TxId = None
+
         self.version  = version
         '''what are the transaction'''
         self.tx_ins   = tx_ins
@@ -142,7 +144,7 @@ SIGHASH_ALL = 1
 class CoinBaseTx:
     def __init__(self,BlockHeight):
         self.BlockHeightInLittleEndian = int_to_little_endian(BlockHeight,bytes_needed(BlockHeight))
-
+        
     def CoinbaseTransaction(self):
         prev_tx = ZERO_HASH
         prev_index = 0xffffffff
@@ -158,7 +160,7 @@ class CoinBaseTx:
         target_script = Script.p2pkh_script(target_h160)
         tx_outs.append(TxOut(amount=target_amount,script_pubkey=target_script))
 
-        coinBaseTx =  Tx(1,tx_ins,tx_outs,0)
+        coinBaseTx = Tx(1,tx_ins,tx_outs,0)
         coinBaseTx.TxId = coinBaseTx.id()
 
         return coinBaseTx

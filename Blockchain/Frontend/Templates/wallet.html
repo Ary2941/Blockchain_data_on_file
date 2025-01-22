@@ -1,0 +1,34 @@
+<!DOCTYPE html> 
+<html lang="pt_BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <link rel="icon" href="path-to-icon">
+        <link rel="stylesheet" href="/static/style.css">
+        <title> Codies Alert </title>
+    </head>
+
+    <body>
+        <div class="wallet-container"> 
+            <h1> send bitcoin </h1>
+
+            <form action="#" id="form" method="post">
+                <label for="from"> from address </label><br>
+                <input type="text" id="from" name="fromAddress"> <br>
+
+                <label for="to"> to address </label><br>
+                <input type="text" id="to" name="toAddress"> <br>
+
+                <label for="amount"> amount </label><br>
+                <input type="number" id="amount" name="amount"> <br>
+
+                <span> {{message}} </span>
+
+                <input type="submit" value="Send">
+
+            </form>
+        </div>
+    </body>
+
+
+</html>
