@@ -5,7 +5,7 @@ from Blockchain.Backend.Core.Database.database import AccountDB
 from Blockchain.Backend.Core.EllepticCurve.EllepticCurve import PrivateKey
 from Blockchain.Backend.Core.script import Script
 from Blockchain.Backend.Core.tx import Tx, TxIn, TxOut
-from Blockchain.Backend.Util.util import decode_base58
+from Blockchain.Backend.Util.util import decode_base58, hash160
 
 
 class SendBTC:
@@ -16,13 +16,14 @@ class SendBTC:
         self.Amount = Amount * self.COIN
         self.utxos = UTXOS
 
-    def scriptPublicKey(PublicAddress):
+    def scriptPublicKey(self,PublicAddress):
         h160 = decode_base58(PublicAddress)
         script_pubKey = Script().p2pkh_script(h160)
         return script_pubKey
 
     def getPrivateKey(self):
-        AllAccounts = AccountDB.read()
+        ACC = AccountDB()
+        AllAccounts = ACC.read()
         for account in AllAccounts:
             if account['PublicAddress'] == self.fromPublicAddress:
                 return account['privateKey']
@@ -31,10 +32,10 @@ class SendBTC:
         TxIns = []
         self.Total = 0
 
-        ''' Convert Public address into Public Hash to find tx_outs that are locked to this hash'''
-
-        self.from_address_script_pubkey = self.scriptPublicKey(self.fromPublicAddress)
-        self.fromPubKeyHash = self.from_address_script_pubkey.cmds[2]
+        """Convert Public Address into Public Hash to find tx_outs that are locked to this hash"""
+        print(f"DEBUG! {self.fromPublicAddress}")
+        self.From_address_script_pubkey = self.scriptPublicKey(self.fromPublicAddress)
+        self.fromPubKeyHash = self.From_address_script_pubkey.cmds[2]
 
         newutxos = {}
 
@@ -42,23 +43,21 @@ class SendBTC:
             while len(newutxos) < 1:
                 newutxos = dict(self.utxos)
                 time.sleep(2)
-        except Exception:
-            print(f'Error in converting the Managed Dict to Normal Dict')
+        except Exception as e:
+            print(f"Error in converting the Managed Dict to Normal Dict")
 
-        for txbyte in newutxos:
+        for Txbyte in newutxos:
             if self.Total < self.Amount:
-                txObject = newutxos[txbyte]
+                TxObj = newutxos[Txbyte]
 
-                for index, txout in enumerate(txObject.tx_outs):
+                for index, txout in enumerate(TxObj.tx_outs):
                     if txout.script_pubkey.cmds[2] == self.fromPubKeyHash:
-                        self.Total += txout.amount 
-                        prev_tx = bytes.fromhex(txObject.id())
-                        TxIns.append(TxIn(prev_tx,index))
+                        self.Total += txout.amount
+                        prev_tx = bytes.fromhex(TxObj.id())
+                        TxIns.append(TxIn(prev_tx, index))
             else:
                 break
-
         self.isBalanceEnough = True
-
         if self.Total < self.Amount:
             self.isBalanceEnough = False
 
@@ -81,7 +80,7 @@ class SendBTC:
         self.fee = self.COIN
         self.changeAmount = self.Total - self.Amount - self.fee
 
-        TxOuts.append(TxOut(self.changeAmount,self.from_address_script_pubkey)) #piking my change
+        TxOuts.append(TxOut(self.changeAmount,self.From_address_script_pubkey)) #piking my change
         return TxOuts
 
     def signTx(self):
@@ -89,14 +88,16 @@ class SendBTC:
         priv = PrivateKey(secret=secret)
 
         for index, input in enumerate(self.TxIns):
-            self.TxObject.sign_input(index, priv, self.from_address_script_pubkey)
+            self.TxObject.sign_input(index, priv, self.From_address_script_pubkey)
 
-        return True 
+        #return True 
 
     def prepareTransaction(self):
         self.TxIns = self.prepareTxIn()
         if self.isBalanceEnough:
             self.TxOuts = self.prepareTxOut()
             self.TxObject = Tx(1,self.TxIns,self.TxOuts,0)
+            self.TxObject.TxId = self.TxObject.id()
             self.signTx()
+            return self.TxObject
         return self.isBalanceEnough

@@ -1,5 +1,5 @@
 from Blockchain.Backend.Core.EllepticCurve.op import OP_CODE_FUNCTION
-from Blockchain.Backend.Util.util import encode_variant, int_to_little_endian
+from Blockchain.Backend.Util.util import encode_varint, int_to_little_endian
 
 
 class Script:
@@ -14,7 +14,7 @@ class Script:
 
     def serialize(self):
         # initialize what we'll send back
-        result = b""
+        result = b''
         # go through each cmd
         for cmd in self.cmds:
             # if the cmd is an integer, it's an opcode
@@ -45,14 +45,15 @@ class Script:
         # get the length of the whole thing
         total = len(result)
         # encode_varint the total length of the result and prepend
-        return encode_variant(total) + result
+        return encode_varint(total) + result
 
 
     def evaluate(self, z):
         cmds = self.cmds[:]
         stack = []
+
         while len(cmds) > 0:
-            cmd = cmds.pop(0) #fetch the first from script
+            cmd = cmds.pop(0)
 
             if type(cmd) == int:
                 operation = OP_CODE_FUNCTION[cmd]
@@ -61,22 +62,20 @@ class Script:
                     if not operation(stack, z):
                         print(f"Error in Signature Verification")
                         return False
-                if not operation(stack):
-                    print(f"Error in Signature Verification")
+
+                elif not operation(stack):
+                    print(f"Error in Signature Verification {stack}")
                     return False
-                                
             else:
                 stack.append(cmd)
         return True
 
 
     @classmethod
-    def p2pkh_script(cls,h160):
-        '''takes hash160 and return the p2pkh ScriptPubKey'''
-        return Script([
-            0x76, #118 
-            0xa9, #169
-            h160,
-            0x88, #136
-            0xac  #72
-            ])
+    def p2pkh_script(cls, h160):
+        """Takes a hash160 and returns the p2pkh ScriptPubKey"""
+        return Script([0x76, 
+                       0xA9, 
+                       h160, #our public key hash, 
+                       0x88, 
+                       0xAC])

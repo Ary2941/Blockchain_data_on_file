@@ -3,6 +3,7 @@ from multiprocessing import Process, Manager #our frontend will be in a second p
 
 sys.path.append("C:/Users/Ary/dev/PyBlockChain")
 
+from Blockchain.Backend.Core.EllepticCurve.op import OP_CODE_FUNCTION
 from Blockchain.Backend.Core.tx import CoinBaseTx
 
 from Blockchain.Backend.Core.block import Block
@@ -18,8 +19,9 @@ ZERO_HASH = b'\0' * 32
 VERSION = 1
 
 class Blockchain:
-    def __init__(self,utxos):
+    def __init__(self,utxos, MemPool):
         self.utxos = utxos
+        self.MemPool = MemPool
 
     ''' quick retrieval in memorty'''
     def store_utxos_in_cache(self, transaction):
@@ -70,13 +72,39 @@ class Blockchain:
             previousBlockHash = lastBlock['BlockHeader']['BlockHash']
             self.addBlock(BlockHeight,previousBlockHash)
 
+    def evaluate(self, z):
+        cmds = self.cmds[:]
+        stack = []
+
+        while len(cmds) > 0:
+            cmd = cmds.pop(0)
+
+            if type(cmd) == int:
+                operation = OP_CODE_FUNCTION[cmd]
+
+                if cmd == 172 or cmd == 136:  # Handle both signature verification commands
+                    if not operation(stack, z):
+                        print(f"Error in Signature Verification with command {cmd} and stack {stack}")
+                        return False
+
+                elif not operation(stack):
+                    print(f"Error in Signature Verification with command {cmd} and stack {stack}")
+                    return False
+            else:
+                stack.append(cmd)
+        return True
+
 if __name__ == '__main__':
     with Manager() as manager:
         utxos = manager.dict()
+        MemPool = manager.dict()
 
-        webapp = Process(target=main, args=(utxos,))
+
+        webapp = Process(target=main, args=(utxos,MemPool))
 
         webapp.start()
 
-        blockchain = Blockchain(utxos)
+        blockchain = Blockchain(utxos, MemPool)
         blockchain.main()
+
+"TODO: FIX send btc"

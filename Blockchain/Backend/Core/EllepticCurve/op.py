@@ -2,6 +2,7 @@ from Blockchain.Backend.Util.util import hash160
 from Blockchain.Backend.Core.EllepticCurve.EllepticCurve import Sha256Point, Signature
 
 def op_dup(stack):
+
     if len(stack) < 1:
         return False
     stack.append(stack[-1])
@@ -17,7 +18,7 @@ def op_hash160(stack):
     stack.append(h160)
     return True
 
-
+# ERROR IS IN HERE! element 1 and element 2 are not equal
 def op_equal(stack):
     if len(stack) < 2:
         return False

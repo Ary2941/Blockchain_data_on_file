@@ -1,6 +1,6 @@
 
 from Blockchain.Backend.Core.script import Script
-from Blockchain.Backend.Util.util import bytes_needed, decode_base58, encode_variant, hash256, int_to_little_endian, little_endian_to_int
+from Blockchain.Backend.Util.util import bytes_needed, decode_base58, encode_varint, hash256, int_to_little_endian, little_endian_to_int
 
 class Tx:
     def __init__(self,version, tx_ins, tx_outs, locktime):
@@ -16,12 +16,12 @@ class Tx:
 
     def serialize(self):
         result = int_to_little_endian(self.version,4)
-        result += encode_variant(len(self.tx_ins))
+        result += encode_varint(len(self.tx_ins))
         
         for transaction in self.tx_ins:
             result += transaction.serialize() #convert all the transaction input and add concatenated value
 
-        result += encode_variant(len(self.tx_outs))
+        result += encode_varint(len(self.tx_outs))
 
         for transaction in self.tx_outs:
             result += transaction.serialize() #convert all the transaction output and add concatenated value
@@ -30,39 +30,39 @@ class Tx:
 
         return result
 
-    def sig_hash(self,input_index, script_pubkey):
-        ''' convert all field in byteform'''
-        string = int_to_little_endian(self.version,4)
-        
-        string += encode_variant(len(self.tx_ins))
+    def sigh_hash(self, input_index, script_pubkey):
+        s = int_to_little_endian(self.version, 4)
+        s += encode_varint(len(self.tx_ins))
 
         for i, tx_in in enumerate(self.tx_ins):
             if i == input_index:
-                string += TxIn(tx_in.prev_tx,tx_in.prev_index,script_pubkey).serialize()
-            else: 
-                string += TxIn(tx_in.prev_tx,tx_in.prev_index).serialize()    
+                s += TxIn(tx_in.prev_tx, tx_in.prev_index, script_pubkey).serialize()
+            else:
+                s += TxIn(tx_in.prev_tx, tx_in.prev_index).serialize()
 
-        string += encode_variant(len(self.tx_outs))
+        s += encode_varint(len(self.tx_outs))
+
         for tx_out in self.tx_outs:
-            string += tx_out.serialize()
+            s += tx_out.serialize()
 
-        string += int_to_little_endian(self.locktime, 4)
-        string += int_to_little_endian(SIGHASH_ALL, 4)
-        h256 = hash256(string)
-        return int.to_bytes(h256, 'big')
-         
+        s += int_to_little_endian(self.locktime, 4)
+        s += int_to_little_endian(SIGHASH_ALL, 4)
+        h256 = hash256(s)
+        print(f"debug {h256}")
+        return int.from_bytes(h256, "big")
+       
     def sign_input(self, input_index, private_key, script_pubkey):
-        signatureHash = self.sig_hash(input_index=input_index,script_pubkey=script_pubkey)
-        der = private_key.sign(signatureHash)
-        sig = der + SIGHASH_ALL.to_bytes(1,'big')
+        z = self.sigh_hash(input_index, script_pubkey)
+        der = private_key.sign(z).der()
+        sig = der + SIGHASH_ALL.to_bytes(1, "big")
         sec = private_key.point.sec()
-        self.tx_ins[input_index].script_sig = Script([sig,sec]) 
-    #   
-    def verify_input(self, input_index, private_key, script_pubkey):
+        self.tx_ins[input_index].script_sig = Script([sig, sec])
+   
+    def verify_input(self, input_index, script_pubkey): #TODO: FIX THIS
         tx_in = self.tx_ins[input_index]
-        z = self.sig_hash(input_index,script_pubkey)
+        z = self.sigh_hash(input_index,script_pubkey)
         combined = tx_in.script_sig + script_pubkey
-        return combined.evaluate(z)
+        return combined.evaluate(z) #z is the main part to verify the transaction
     #
     def id(self):
         '''Human-readable TxId'''

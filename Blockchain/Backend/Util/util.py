@@ -9,7 +9,8 @@ def hash256(data):
     return sha256(sha256(data).digest()).digest()
 
 def hash160(s):
-    return RIPEMD160.new(sha256(s).digest()).digest()
+    newval = RIPEMD160.new(sha256(s).digest()).digest() 
+    return newval
 
 def int_to_little_endian(n,length):
     '''int to little endian, used in coinbase transaction
@@ -26,30 +27,30 @@ def bytes_needed(n):
     return int(log(n,256)) + 1
 
 def decode_base58(s):
+    '''String turns into a Base 58 encoding'''
     num = 0
 
     for c in s:
-        #print(f"c: {c} {c in BASE58_ALPHABET}")
         num *= 58
         num += BASE58_ALPHABET.index(c)
 
     combined = num.to_bytes(25, byteorder="big")
     checksum = combined[-4:]
+
     if hash256(combined[:-4])[:4] != checksum:
-        raise ValueError(f"bad Address {checksum} {hash256(combined[:-4])[:4]}")
+        raise ValueError(f"bad Address {checksum} {hash256(combined[:-4][:4])}")
 
     return combined[1:-4]
 
-def encode_variant(i):
-    if i < 0xfd:
-        return bytes(1)
-    elif i < 0x1000: #hex encoding of the value
-        return b'\xfd' + int_to_little_endian(i,2)
-
+def encode_varint(i):
+    """encodes an integer as a varint"""
+    if i < 0xFD:
+        return bytes([i])
+    elif i < 0x10000:
+        return b"\xfd" + int_to_little_endian(i, 2)
     elif i < 0x100000000:
-        return b'\xff' + int_to_little_endian(i, 4)
-
+        return b"\xfe" + int_to_little_endian(i, 4)
     elif i < 0x10000000000000000:
-        return b'\xff' + int_to_little_endian(i, 8)
+        return b"\xff" + int_to_little_endian(i, 8)
     else:
-        raise ValueError('Integar too large {}'.format(i))
+        raise ValueError("integer too large: {}".format(i))

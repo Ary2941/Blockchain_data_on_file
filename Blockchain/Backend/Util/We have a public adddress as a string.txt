@@ -1,0 +1,3 @@
+We have a public adddress as a string
+this public adddress is converted into base58 by the decode_base58 
+and then to byteorder (big)
