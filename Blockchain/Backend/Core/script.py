@@ -11,7 +11,11 @@ class Script:
 
     def __add__(self, other):
         return Script(self.cmds + other.cmds)
+    
+    def __repr__(self):
+        return f"Script with cmds: {self.cmds}"
 
+    # we serialize the command to add the publc key address and the public key hash
     def serialize(self):
         # initialize what we'll send back
         result = b''

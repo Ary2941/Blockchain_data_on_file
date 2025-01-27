@@ -8,9 +8,11 @@ from Blockchain.Backend.Core.EllepticCurve.EllepticCurve import BASE58_ALPHABET
 def hash256(data):
     return sha256(sha256(data).digest()).digest()
 
-def hash160(s):
-    newval = RIPEMD160.new(sha256(s).digest()).digest() 
-    return newval
+def hash160(s): # fixed function
+    ripe = RIPEMD160.new()
+    ripe.update(s)
+    return ripe.digest()
+
 
 def int_to_little_endian(n,length):
     '''int to little endian, used in coinbase transaction

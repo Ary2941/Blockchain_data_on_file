@@ -14,7 +14,7 @@ def wallet():
         sendCoin = SendBTC(FromAddress, toAddress, amount, UTXOS)
         txObject = sendCoin.prepareTransaction()
         scriptPubkey = sendCoin.scriptPublicKey(FromAddress)
-        print("f PUBLIC KEY {scriptPubkey}")
+        '''TO LOOK: Here the public key hash is inside the scriptPubkey at index 2'''
 
         verified = True
         

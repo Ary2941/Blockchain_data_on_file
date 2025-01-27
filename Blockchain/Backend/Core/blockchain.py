@@ -107,4 +107,3 @@ if __name__ == '__main__':
         blockchain = Blockchain(utxos, MemPool)
         blockchain.main()
 
-"TODO: FIX send btc"

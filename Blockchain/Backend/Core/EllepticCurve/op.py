@@ -9,22 +9,23 @@ def op_dup(stack):
 
     return True
 
-
 def op_hash160(stack):
     if len(stack) < 1:
         return False
     element = stack.pop()
+
     h160 = hash160(element)
     stack.append(h160)
     return True
 
-# ERROR IS IN HERE! element 1 and element 2 are not equal
 def op_equal(stack):
     if len(stack) < 2:
         return False
 
     element1 = stack.pop()
     element2 = stack.pop()
+
+
 
     if element1 == element2:
         stack.append(1)

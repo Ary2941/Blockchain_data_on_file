@@ -16,6 +16,9 @@ class SendBTC:
         self.Amount = Amount * self.COIN
         self.utxos = UTXOS
 
+    def __repr__(self):
+        return f"SendBTC object From {self.fromPublicAddress} to {self.toAccount} with Amount {self.Amount}"
+
     def scriptPublicKey(self,PublicAddress):
         h160 = decode_base58(PublicAddress)
         script_pubKey = Script().p2pkh_script(h160)
