@@ -27,6 +27,16 @@ class Blockchain:
     def store_utxos_in_cache(self, transaction):
         self.utxos[transaction.TxId] = transaction
 
+
+    ''' read Transactions from memory pool'''
+    def read_transaction_from_memorypool(self):
+        self.TxIds = []
+        self.addTransactionsInBlock = []
+
+        for tx in self.MemPool:
+            self.TxIds.append(tx.TxId)
+            self.addTransactionsInBlock.append(self.MemPool[tx])
+
     def write_on_disk(self,block):
         blockchaindb = BlockchainDB()
         #print(f"block{block}")
@@ -40,24 +50,35 @@ class Blockchain:
         BlockHeight = 0
         previousBlockHash = ZERO_HASH
         self.addBlock(BlockHeight, previousBlockHash)
+    
+    def convert_to_JSON(self):
+        self.TxJson = []
+        for tx in self.addTransactionsInBlock:
+            self.TxJson.append(tx.to_dict())
 
     def addBlock(self,BlockHeight, previousBlockHash): 
+        self.read_transaction_from_memorypool()
         timestamp = int(time.time())
         #Transaction = f"Codies Alert sent {BlockHeight} bitcoins to Joe"
         cbInstance = CoinBaseTx(BlockHeight)
         '''Tx = transaction'''
 
         Tx = cbInstance.CoinbaseTransaction()
+
+        self.TxIds.insert(0, Tx.TxId)
+        self.addTransactionsInBlock.insert(0, Tx)
+
         merkleRoot = Tx.TxId  #combined hash of all the transactions
         bits = 'ffff001f'
         blockHeader = BlockHeader(VERSION,previousBlockHash,merkleRoot,timestamp,bits)
         blockHeader.mine()
         #
         self.store_utxos_in_cache(Tx)
+        self.convert_to_JSON()
         #
         print(f"Block {BlockHeight} mined succesfully with Nonce value of {blockHeader.nonce}")
 
-        self.write_on_disk([Block(BlockHeight, 1, blockHeader.__dict__, 1 , Tx.to_dict()).__dict__])
+        self.write_on_disk([Block(BlockHeight, 1, blockHeader.__dict__, 1 , self.TxJson).__dict__])
 
     def main(self):
         lastBlock = self.fetch_last_block()
