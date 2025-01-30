@@ -8,7 +8,7 @@ from Blockchain.Backend.Core.tx import CoinBaseTx
 
 from Blockchain.Backend.Core.block import Block
 from Blockchain.Backend.Core.blockheader import BlockHeader
-from Blockchain.Backend.Util.util import hash256
+from Blockchain.Backend.Util.util import hash256, merkle_root
 from Blockchain.Backend.Core.Database.database import BlockchainDB
 
 from Blockchain.Frontend.run import main
@@ -34,7 +34,7 @@ class Blockchain:
         self.addTransactionsInBlock = []
 
         for tx in self.MemPool:
-            self.TxIds.append(tx.TxId)
+            self.TxIds.append(bytes.fromhex(tx.TxId))
             self.addTransactionsInBlock.append(self.MemPool[tx])
 
     def write_on_disk(self,block):
@@ -65,10 +65,10 @@ class Blockchain:
 
         Tx = cbInstance.CoinbaseTransaction()
 
-        self.TxIds.insert(0, Tx.TxId)
+        self.TxIds.insert(0, bytes.fromhex(Tx.TxId) )
         self.addTransactionsInBlock.insert(0, Tx)
 
-        merkleRoot = Tx.TxId  #combined hash of all the transactions
+        merkleRoot = merkle_root(self.TxIds)[::-1].hex()  #combined hash of all the transactions
         bits = 'ffff001f'
         blockHeader = BlockHeader(VERSION,previousBlockHash,merkleRoot,timestamp,bits)
         blockHeader.mine()
