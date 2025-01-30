@@ -1,7 +1,7 @@
 # Making a Bitcoin-based blockchain (with NO use of etherium)
 # TODOS:
     [x] adding transactions in block
-    [ ] Merkle root
+    [x] Merkle root
     [ ] Removing spent transactions from UTXOS
     [ ] Removing transactions from cache
     [ ] Calculating fee
