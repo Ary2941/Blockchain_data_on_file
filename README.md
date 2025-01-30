@@ -2,9 +2,8 @@
 # TODOS:
     [x] adding transactions in block
     [x] Merkle root
-    [ ] Removing spent transactions from UTXOS
-    [ ] Removing transactions from cache
-    [ ] Calculating fee
+    [x] Removing spent transactions from UTXOS
+    [x] Removing transactions from cache
+    [x] Calculating fee
     [ ] Calculating difficult target
     [ ] Calculating block size
-Nothing is worth the risk
