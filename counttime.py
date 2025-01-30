@@ -1,7 +1,6 @@
 import datetime
 
-timeList = [
-    '0:09:59',
+timeList = [    
     '0:09:36',
     '0:02:09',
     '0:07:54',

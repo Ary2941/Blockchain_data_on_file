@@ -18,24 +18,47 @@ from Blockchain.Frontend.run import main
 ZERO_HASH = b'\0' * 32
 VERSION = 1
 
+
+
 class Blockchain:
     def __init__(self,utxos, MemPool):
         self.utxos = utxos
         self.MemPool = MemPool
 
     ''' quick retrieval in memorty'''
-    def store_utxos_in_cache(self, transaction):
-        self.utxos[transaction.TxId] = transaction
-
-
+    def store_utxos_in_cache(self):
+        for transaction in self.addTransactionsInBlock:
+            print(f"transaction {transaction} aded")
+            self.utxos[transaction.TxId] = transaction
+        
+    def remove_spent_Transactions(self):
+        for TxId_index in self.remove_spent_transactions:
+            if TxId_index[0].hex() in self.utxos:
+                if len(self.utxos[TxId_index[0].hex()].tx_outs) < 2:
+                    print(f"transaction{TxId_index[0].hex()} removed from UTXO")
+                    
+                    del self.utxos[TxId_index[0].hex()]
+                else:
+                    prev_trans = self.utxos[TxId_index[0].hex()]
+                    self.utxos[TxId_index[0].hex()] = prev_trans.tx_outs.pop(TxIn_index[1])
+    
     ''' read Transactions from memory pool'''
     def read_transaction_from_memorypool(self):
         self.TxIds = []
         self.addTransactionsInBlock = []
+        self.remove_spent_transactions = []
 
         for tx in self.MemPool:
-            self.TxIds.append(bytes.fromhex(tx.TxId))
+            self.TxIds.append(bytes.fromhex(tx))
             self.addTransactionsInBlock.append(self.MemPool[tx])
+            
+            for spent in self.MemPool[tx].tx_ins:
+                self.remove_spent_transactions.append([spent.prev_tx, spent.prev_index])
+
+    def remove_transactions_from_memorypool(self):
+        for tx in self.TxIds:
+            if tx.hex() in self.MemPool:
+                del self.MemPool[tx.hex()]
 
     def write_on_disk(self,block):
         blockchaindb = BlockchainDB()
@@ -56,26 +79,47 @@ class Blockchain:
         for tx in self.addTransactionsInBlock:
             self.TxJson.append(tx.to_dict())
 
+    def calculate_fee(self):
+        self.input_amount = 0
+        self.output_amount = 0
+
+        '''input amount'''
+        for txId_index in self.remove_spent_transactions:
+            if txId_index[0].hex() in self.utxos:
+                self.input_amount += self.utxos[txId_index[0].hex()].tx_outs[txId_index[1]].amount
+
+        for tx in self.addTransactionsInBlock:
+            for tx_out in tx.tx_outs:
+                self.output_amount += tx_out.amount
+
+        self.fee = self.input_amount - self.output_amount
+    
+
+
     def addBlock(self,BlockHeight, previousBlockHash): 
         self.read_transaction_from_memorypool()
+        self.calculate_fee()
+        
         timestamp = int(time.time())
-        #Transaction = f"Codies Alert sent {BlockHeight} bitcoins to Joe"
+
         cbInstance = CoinBaseTx(BlockHeight)
         '''Tx = transaction'''
 
         Tx = cbInstance.CoinbaseTransaction()
+        
+        Tx.tx_outs[0].amount += self.fee #update fee
 
-        self.TxIds.insert(0, bytes.fromhex(Tx.TxId) )
+        self.TxIds.insert(0, bytes.fromhex(Tx.id()) )
         self.addTransactionsInBlock.insert(0, Tx)
 
         merkleRoot = merkle_root(self.TxIds)[::-1].hex()  #combined hash of all the transactions
         bits = 'ffff001f'
         blockHeader = BlockHeader(VERSION,previousBlockHash,merkleRoot,timestamp,bits)
         blockHeader.mine()
-        #
-        self.store_utxos_in_cache(Tx)
+        self.remove_spent_Transactions()
+        self.read_transaction_from_memorypool()
+        self.store_utxos_in_cache()
         self.convert_to_JSON()
-        #
         print(f"Block {BlockHeight} mined succesfully with Nonce value of {blockHeader.nonce}")
 
         self.write_on_disk([Block(BlockHeight, 1, blockHeader.__dict__, 1 , self.TxJson).__dict__])
