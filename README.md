@@ -7,3 +7,4 @@
     [ ] Calculating fee
     [ ] Calculating difficult target
     [ ] Calculating block size
+Nothing is worth the risk
