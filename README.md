@@ -8,4 +8,4 @@
     [ ] Calculating difficult target
     [ ] Calculating block size
 
-nothing is worth the ris
+Will finish tomorow promise
