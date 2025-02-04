@@ -9,3 +9,5 @@
     [ ] Calculating block size
 
 Will finish tomorow promise
+
+what am i doing with miself
