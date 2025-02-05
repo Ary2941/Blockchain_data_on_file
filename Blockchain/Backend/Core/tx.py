@@ -53,7 +53,7 @@ class Tx:
         s += int_to_little_endian(self.locktime, 4)
         s += int_to_little_endian(SIGHASH_ALL, 4)
         h256 = hash256(s)
-        print(f"debug {h256}")
+        #print(f"1.debug {h256}")
         return int.from_bytes(h256, "big")
        
     def sign_input(self, input_index, private_key, script_pubkey):
@@ -140,10 +140,8 @@ class TxIn:
         result = self.prev_tx[::-1]
         result += int_to_little_endian(self.prev_index, 4)
         result += self.script_sig.serialize()
-        #
         result += int_to_little_endian(self.sequence, 4)
-        #
-        print(f"Serialized TxIn {result}")
+        #print(f"Serialized TxIn {result.hex()}")
         return result
 
 
@@ -158,7 +156,7 @@ class TxOut:
     def serialize(self):
         result = int_to_little_endian(self.amount, 8)
         result += self.script_pubkey.serialize()
-        print(f"Serialized TxOut {result}")
+        #print(f"Serialized TxOut {result.hex()}")
         return result
 
 

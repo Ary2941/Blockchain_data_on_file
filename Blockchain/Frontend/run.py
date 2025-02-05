@@ -23,12 +23,13 @@ def wallet():
 
         if isinstance(txObject, Tx):
             for index, tx in enumerate(txObject.tx_ins):
-                print(f'DEBUG: index {index}')
+                #print(f'DEBUG: index {index}')
                 if not txObject.verify_input(index,scriptPubkey):
                     verified = False
                 if verified:
                     MEMPOOL[txObject.TxId] = txObject
                     message = f"Transaction {txObject} added in memory Pool"
+                    print(f"Transaction {txObject} added in memory Pool")
 
     return render_template('wallet.html', message = message)
 

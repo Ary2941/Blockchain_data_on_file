@@ -23,19 +23,42 @@ class Blockchain:
         self.utxos = utxos
         self.MemPool = MemPool
 
-    ''' quick retrieval in memorty'''
-    def store_utxos_in_cache(self, transaction):
-        self.utxos[transaction.TxId] = transaction
+    def store_utxos_in_cache(self):
+        for transaction in self.addTransactionsInBlock:
+            print(f'Transaction {transaction.TxId} added to UTXOS')
+            self.utxos[transaction.TxId] = transaction
+
+    def remove_spent_transactions(self):
+        for txId_index in self.removeSpentTransactions:
+            '''if previous transaction in self.utxos'''
+
+            if txId_index[0].hex() in self.utxos:
+
+                if len(self.utxos[txId_index[0].hex()].tx_outs) < 2:
+                    print(f'Spent Transaction {txId_index[0].hex()} removed from UTXOS')
+                    del self.utxos[txId_index[0].hex()]
+                else:
+                    prev_trans = self.utxos[txId_index[0].hex()]
+                    self.utxos[txId_index [0].hex()] = prev_trans.tx_outs.pop(txId_index[1])
 
 
     ''' read Transactions from memory pool'''
     def read_transaction_from_memorypool(self):
         self.TxIds = []
         self.addTransactionsInBlock = []
+        self.removeSpentTransactions = []
 
         for tx in self.MemPool:
-            self.TxIds.append(tx.TxId)
+            self.TxIds.append(tx)
             self.addTransactionsInBlock.append(self.MemPool[tx])
+
+            for spent in self.MemPool[tx].tx_ins:
+                self.removeSpentTransactions.append([spent.prev_tx, spent.prev_index]) # we will remove based on this
+
+    def remove_transaction_from_memorypool(self):
+        for tx in self.TxIds:
+            if tx in self.MemPool:
+                del self.MemPool[tx]
 
     def write_on_disk(self,block):
         blockchaindb = BlockchainDB()
@@ -72,13 +95,16 @@ class Blockchain:
         bits = 'ffff001f'
         blockHeader = BlockHeader(VERSION,previousBlockHash,merkleRoot,timestamp,bits)
         blockHeader.mine()
-        #
-        self.store_utxos_in_cache(Tx)
+        self.remove_spent_transactions()
+        self.remove_transaction_from_memorypool()
+        self.store_utxos_in_cache()
         self.convert_to_JSON()
-        #
-        print(f"Block {BlockHeight} mined succesfully with Nonce value of {blockHeader.nonce}")
-
+        print(f"\nBlock {BlockHeight} mined succesfully with Nonce value of {blockHeader.nonce}")
+        for transactionJson in self.TxJson:
+            print(f"    Transaction {transactionJson["TxId"]}")
+        print('\n')
         self.write_on_disk([Block(BlockHeight, 1, blockHeader.__dict__, 1 , self.TxJson).__dict__])
+
 
     def main(self):
         lastBlock = self.fetch_last_block()

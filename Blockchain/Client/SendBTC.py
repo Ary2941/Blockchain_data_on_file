@@ -36,7 +36,7 @@ class SendBTC:
         self.Total = 0
 
         """Convert Public Address into Public Hash to find tx_outs that are locked to this hash"""
-        print(f"DEBUG! {self.fromPublicAddress}")
+        #print(f"DEBUG! {self.fromPublicAddress}")
         self.From_address_script_pubkey = self.scriptPublicKey(self.fromPublicAddress)
         self.fromPubKeyHash = self.From_address_script_pubkey.cmds[2]
 
